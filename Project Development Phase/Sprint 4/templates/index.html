@@ -1,0 +1,336 @@
+<html>
+
+<head>
+    <!-- Latest compiled and minified CSS -->
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <script type="text/javascript" src="https://code.jquery.com/jquery-1.7.1.min.js"></script>
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <script>
+        function updateDiv()
+        { 
+            $( "#home" ).load(window.location.href + " #home" );
+        }
+        window.setTimeout(function () {
+            $(".alert").fadeTo(500, 0).slideUp(500, function () {
+                $(this).remove();
+            });
+        }, 4000);
+
+        function openForm() {
+            document.getElementById("myForm").style.display = "block";
+        }
+        function openrecord(value) {
+            document.getElementById("recordform").style.display = value;
+        }
+        function closeForm() {
+            document.getElementById("myForm").style.display = "none";
+        }
+
+        function limgraph(value) {
+            document.getElementById("limgraph").style.display = value;
+            document.getElementById("limform").style.display = 'none';
+        }
+
+        function limForm(value) {
+            document.getElementById("limform").style.display = value;
+            document.getElementById("limgraph").style.display = 'none';
+        }
+    </script>
+    <style>
+        html {
+            /* FF3.6-15 */
+            background: -webkit-linear-gradient(-45deg, #de437d 0%, #5b44b9 100%);
+            /* Chrome10-25,Safari5.1-6 */
+            /* W3C, IE10+, FF16+, Chrome26+, Opera12+, Safari7+ */
+            /* IE6-9 fallback on horizontal gradient */
+        }
+
+        svg {
+            margin: 0 auto;
+            text-align: center;
+            width: 100%;
+            padding-top: 40px;
+        }
+
+        polyline {
+            stroke-dasharray: 1000;
+            stroke-dashoffset: 1000;
+            animation: dash 3s ease-in forwards;
+            animation-direction: alternate;
+        }
+
+        @keyframes dash {
+            to {
+                stroke-dashoffset: 0;
+            }
+        }
+
+        p {
+            font-size: 2rem;
+            text-align: center;
+            color: #efefef;
+        }
+
+        .name {
+            font-size: .10rem;
+            font-weight: light;
+        }
+    </style>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="static/style.css" rel="stylesheet">
+    <!-- Latest compiled JavaScript -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.2/dist/js/bootstrap.bundle.min.js"></script>
+    <ul class="nav bg-dark nav-pills sticky-top">
+        <li class="nav-item">
+                <li class="nav-item">
+                    <a class="btn nav-link bg-dark {% if active=='home' %}active{%endif %}" data-bs-toggle="pill"
+                        href="#home" id="log">Home</a>
+                </li>
+                <li class="nav-item">
+                    <a class="btn nav-link bg-dark {% if active=='profile' %}active{%endif %}" data-bs-toggle="pill"
+                        href="#profile" id="log">Profile</a>
+                </li>
+                <li><a class="btn nav-link btn-outline-dark" data-bs-toggle="pill"
+                        href="#logout">Logout</a></li>
+        </li>
+    </ul>
+</head>
+
+<body class="bg-black">
+    <div class="{% if msg =='error' %}alert alert-warning{% else %}visually-hidden {% endif %}">
+        <strong>Warning!</strong> {{session.msg}} <strong>failed.</strong>
+    </div>
+    <div class="{% if msg =='success' %}alert alert-success{% else %}visually-hidden {% endif %}" role="alert">
+        <strong>success!</strong> {{session.msg}} <strong>completed.</strong>
+    </div>
+    <!-- Tab panes -->
+        <div class="tab-pane container active" id="home">
+            {% if session.username != None %}
+            <div class="container-fluid">
+                <div class="row pt-5">
+                    <div class="col-4">
+                        <div class="card" style="width:400px">
+                            <div class="card-body">
+                                <h4 class="card-title">Balance</h4>
+                                <p class="card-text text-{{text}}">{{session.balance}}.00</p>
+                                <a href="#" onclick="openForm()" class="btn btn-primary">Change Balance</a>
+                                <div class="form-popup" id="myForm" style="display:none;">
+                                    <form action="/changebalance" method="POST">
+                                        <div class="mb-3 mt-3">
+                                            <input type="text" class="form-control" id="balance"
+                                                placeholder="Enter new balance" name="balance">
+                                        </div>
+                                        <button type="submit" class="btn btn-light btn-outline-success"><i
+                                                class="material-icons">done</i></button>
+                                        <button type="button" class="btn btn-light btn-outline-danger"
+                                            onclick="closeForm()"><i class="material-icons">highlight_off</i></button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-4">
+                        <div class="card" style="width:400px">
+                            <div class="card-body">
+                                <h4 class="card-title">Expence Limit</h4>
+                                <p class="card-text text-{{limtext}}">{{session.expence}}.00/{{session.limit}}.00</p>
+                                <a href="#" onclick="limForm('block')" class="btn btn-primary">update limit</a>
+                                <a href="#" onclick="limgraph('block')" class="btn btn-primary">show remaining
+                                    percent</a>
+                                <div id="limgraph" style="display:none;">
+                                    <div id="pie" class="pie animate text-dark">{{session.percent}}%</div>
+                                    <script>
+                                        document.getElementById("pie").style =
+                                            "--p:{{session.limit}};--c:{{session.limitcolor}}";
+                                    </script>
+                                    <a href="#" onclick="limgraph('none')" class="btn btn-danger"><i
+                                            class="material-icons">highlight_off</i></a>
+                                </div>
+                                <div class="form-popup" id="limform" style="display:none;">
+                                    <form action="/changelimit" method="POST">
+                                        <div class="mb-3 mt-3">
+                                            <input type="text" class="form-control" id="limit"
+                                                placeholder="Enter new limit" name="limit">
+                                        </div>
+                                        <button type="submit" class="btn btn-light btn-outline-success"><i
+                                                class="material-icons">done</i></button>
+                                        <button type="button" class="btn btn-light btn-outline-danger"
+                                            onclick="limForm('none')"><i
+                                                class="material-icons">highlight_off</i></button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-4">
+                        <div class="card" style="width:400px">
+                            <div class="card-body">
+                                <h4 class="card-title">Income</h4>
+                                <p class="card-text text-{{inctxt}}">{{session.income}}</p>
+                                <a href="#" class="btn btn-primary">History</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="row pt-5">
+                    <div class="col-12">
+                        <button class="btn btn-primary" style="width:100%;" onclick="openrecord('block')">Add Record</button>
+                        <div class="form-popup" id="recordform" style="display:none;">
+                            <!-- record forms-->
+                        </div>
+                    </div>
+
+                </div>
+                <!-- <div class="row pt-5">
+                    <div class="col-4">
+                        <div class="card bg-dark" style="width:400px">
+                            <div class="card-body">
+                                <h4 class="card-title">-</h4>
+                                <div class="pie animate card-text text-light" style="--p:90;--c:lightgreen">90%</div>
+                                <a href="#" class="btn btn-primary">History</a>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-4">
+                        <div class="card bg-dark" style="width:400px;">
+                            <div class="card-body">
+                                <h4 class="card-title">-</h4>
+                                <div class="pie animate text-light" style="--p:90;--c:lightgreen">90%</div>
+                                <a href="#" class="btn btn-primary">History</a>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-4">
+                        <div class="card bg-dark" style="width:400px">
+                            <div class="card-body">
+                                <h4 class="card-title">-</h4>
+                                <div class="pie animate text-light" style="--p:90;--c:lightgreen">90%</div>
+                                <a href="#" class="btn btn-primary">History</a>
+                            </div>
+                        </div>
+                    </div> -->
+                    <div class="row pt-5">
+                        <div class="col-4">
+                            <div class="card bg-light" style="width:400px">
+                                <div class="card-body col-9">
+                                    <h4 class="card-title">Expence</h4>
+                                    {% if session.recordsExpence %}
+                                    <table id="myTable" class="table table-striped">
+                                        <thead>
+                                            <tr>
+                                                <th>S.no</th>
+                                                <th>TO</th>
+                                                <th>AMOUNT</th>
+                                                <th>CATEGORY</th>
+                                                <th>Date</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {% for n in session.recordsExpence %}
+                                            <tr>
+                                                <td>{{n[0]}}</td>
+                                                <td>{{n[1]}}</td>
+                                                <td>{{n[2]}}</td>
+                                                <td>{{n[3]}}</td>
+                                                <td>{{n[4]}}</td>
+                                            </tr>
+                                            {%endfor%}
+                                        </tbody>
+                                    </table>
+                                    <a href="#" class="btn btn-primary">History</a>
+                                    {%else%}
+                                    <p class="card-text text-danger">No records found</p>
+                                    <button type="button" class="btn btn-primary btn-rounded btn-icon"><i
+                                            class="material-icons">add</i></button>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-4">
+                            <div class="card bg-light" style="width:400px">
+                                <div class="card-body col-9">
+                                    <h4 class="card-title">Transfer</h4>
+                                    {% if session.recordsTransfer %}
+                                    <table id="myTable" class="table table-striped">
+                                        <thead>
+                                            <tr>
+                                                <th>S.no</th>
+                                                <th>TO</th>
+                                                <th>AMOUNT</th>
+                                                <th>CATEGORY</th>
+                                                <th>Date</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {% for n in session.recordsTransfer %}
+                                            <tr>
+                                                <td>{{n[0]}}</td>
+                                                <td>{{n[1]}}</td>
+                                                <td>{{n[2]}}</td>
+                                                <td>{{n[3]}}</td>
+                                                <td>{{n[4]}}</td>
+                                            </tr>
+                                            {%endfor%}
+                                        </tbody>
+                                    </table>
+                                    <a href="#" class="btn btn-primary">History</a>
+                                    {%else%}
+                                    <p class="card-text text-danger">No records found</p>
+                                    <button type="button" class="btn btn-primary btn-rounded btn-icon"><i class="material-icons">add</i></button>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-4">
+                            <div class="card bg-light" style="width:400px">
+                                <div class="card-body col-9">
+                                    <h4 class="card-title">Income</h4>
+                                    {% if session.recordsIncome %}
+                                    <table id="myTable" class="table table-striped">
+                                        <thead>
+                                            <tr>
+                                                <th>S.no</th>
+                                                <th>TO</th>
+                                                <th>AMOUNT</th>
+                                                <th>CATEGORY</th>
+                                                <th>Date</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {% for n in session.recordsIncome %}
+                                            <tr>
+                                                <td>{{n[0]}}</td>
+                                                <td>{{n[1]}}</td>
+                                                <td>{{n[2]}}</td>
+                                                <td>{{n[3]}}</td>
+                                                <td>{{n[4]}}</td>
+                                            </tr>
+                                            {%endfor%}
+                                        </tbody>
+                                    </table>
+                                    <a href="#" class="btn btn-primary">History</a>
+                                    {%else%}
+                                    <p class="card-text text-danger">No records found</p>
+                                    <button type="button" class="btn btn-primary btn-rounded btn-icon"><i class="material-icons">add</i></button>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% else %}
+            <p>You are not logged in. Login <a href="/redirect"><strong>here</strong><a></p>
+            {% endif %}
+        </div>
+        <div class="tab-pane container {% if active=='logout' %}active{%else%}fade{%endif %}" id="logout">
+            <div class="alert alert-success">
+                <strong>Success!</strong> Logout <strong>completed.</strong>
+            </div>
+            <p>Login <a href="/redirect"><strong>here</strong><a></p>
+        </div>
+    </div>
+    </div>
+</body>
+
+</html>
